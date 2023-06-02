@@ -1,0 +1,28 @@
+make sure hugepage has properly set up for each NIC, i.e., /mnt/ens2f0np0...
+run the follwoing two programs
+$ sudo sock2shmd
+$ sudo VMA_SPEC=latency VMA_MEM_ALLOC_TYPE=2 LD_PRELOAD=/usr/lib64/libvma.so:/usr/lib64/libhugetlbfs.so numactl --membind=0 nice -n -20 taskset -c 1 /home/ubuntu/work/c/rudpd -i ens2f0np0 -cpu 1 -block 10 -fpga 0
+$ sudo VMA_SPEC=latency VMA_MEM_ALLOC_TYPE=2 LD_PRELOAD=/usr/lib64/libvma.so:/usr/lib64/libhugetlbfs.so numactl --membind=0 nice -n -20 taskset -c 2 /home/ubuntu/work/c/rudpd -i ens2f0np0 -cpu 2 -block 10 -fpga 1
+$ sudo VMA_SPEC=latency VMA_MEM_ALLOC_TYPE=2 LD_PRELOAD=/usr/lib64/libvma.so:/usr/lib64/libhugetlbfs.so numactl --membind=1 nice -n -20 taskset -c 33 /home/ubuntu/work/c/rudpd -i ens2f0np0 -cpu 33 -block 10 -fpga 2
+$ sudo VMA_SPEC=latency VMA_MEM_ALLOC_TYPE=2 LD_PRELOAD=/usr/lib64/libvma.so:/usr/lib64/libhugetlbfs.so numactl --membind=1 nice -n -20 taskset -c 34 /home/ubuntu/work/c/rudpd -i ens2f0np0 -cpu 34 -block 10 -fpga 3 
+the taskset in the abpve example might not be needed
+and then command through socket by
+$ sendsocket 10.24.121.102 8000 1 (start receiving packets)
+$ sendsocket 10.24.121.102 8000 2 (save ring buffer)
+
+
+****
+for this version, I set all output directory to /disk1/fpga
+to speed up the output process, we need 4 disks for each fpga ring buffer output, for example,  /disk0, /disk1, /disk2, /disk3
+then we need to change 
+from 
+#define OUT_DIR "/disk1/fpga/"
+to 
+#define OUT_DIR "/disk"
+in burstt.h
+
+and
+sprintf(datafile, "%s/fpga/fpga%d.%02d%02d%02d%02d%02d.bin", dir, fpga, file_tm.tm_mon + 1, file_tm.tm_mday, file_tm.tm_hour, file_tm.tm_min, file_tm.tm_sec);
+to 
+sprintf(datafile, "%s%d/fpga%d.%02d%02d%02d%02d%02d.bin", dir, fpga, fpga, file_tm.tm_mon + 1, file_tm.tm_mday, file_tm.tm_hour, file_tm.tm_min, file_tm.tm_sec);
+
