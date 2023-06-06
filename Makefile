@@ -13,6 +13,16 @@ rudpd:
 sock2shmd:
 	${CC} ${CFLAGS} sock2shmd.c -o sock2shmd
 
+ifeq ($(PREFIX),)
+    PREFIX := /opt/burstt
+endif
+
+install: readshm rudpd sock2shmd
+	install -d $(PREFIX)/bin
+	install -m 755 readshm $(PREFIX)/bin
+	install -m 755 rudpd $(PREFIX)/bin
+	install -m 755 sock2shmd $(PREFIX)/bin
+
 clean:
 	rm -rf readshm rudpd sock2shmd
 
